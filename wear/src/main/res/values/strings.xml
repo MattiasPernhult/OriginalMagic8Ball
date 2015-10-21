@@ -1,5 +1,3 @@
 <resources>
-    <string name="app_name">OriginalMagic8Ball</string>
-    <string name="hello_round">Hello Round World!</string>
-    <string name="hello_square">Hello Square World!</string>
+    <string name="app_name">Magic 8 Ball</string>
 </resources>
