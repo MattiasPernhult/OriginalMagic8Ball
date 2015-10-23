@@ -32,12 +32,21 @@ public class MainActivity extends AppCompatActivity implements ShakeDetector.OnS
     private String mAnswer;
     private int mAnimationCount;
     private boolean mIsShakeOk;
+    private boolean hasShaked;
 
     private SensorManager mSensorManager;
     private Sensor mAccelerometer;
     private ShakeDetector mShakeDetector;
 
     private int test;
+    private int resourceId;
+
+    private String whatToGenerate;
+
+    private static final String GENERATE = "mattiaspernhult.com.generate";
+    private static final String GENERATE_POS = "mattiaspernhult.com.generate_pos";
+    private static final String GENERATE_NEG = "mattiaspernhult.com.generate_neg";
+    private static final String GENERATE_NEU = "mattiaspernhult.com.generate_neu";
 
 
     @Override
@@ -50,13 +59,15 @@ public class MainActivity extends AppCompatActivity implements ShakeDetector.OnS
         initializeRotationAnimation();
         registerAnimationListener();
         mIsShakeOk = true;
+        hasShaked = false;
+        whatToGenerate = GENERATE;
 
         mAnimationCount = 0;
 
         mMagicBall.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mAnswer != null) {
+                if (hasShaked) {
                     mMagicBall.startAnimation(mRotate);
                 } else {
                     Toast.makeText(MainActivity.this, "You need to shake before " +
@@ -81,8 +92,71 @@ public class MainActivity extends AppCompatActivity implements ShakeDetector.OnS
         mRotate.setDuration(500);
     }
 
+    private void decideWhichId() {
+        if (mAnswer == null) {
+            mAnswer = "Ask again later";
+        }
+        switch (mAnswer) {
+            case "It is certain":
+                resourceId = R.drawable.eight_ball_it_is_certain_192;
+                break;
+            case "It is decidedly so":
+                resourceId = R.drawable.eight_ball_it_is_decidedly_so_192;
+                break;
+            case "Without a doubt":
+                resourceId = R.drawable.eight_ball_without_a_doubt_192;
+                break;
+            case "Yes, definitely":
+                resourceId = R.drawable.eight_ball_yes_definitely_192;
+                break;
+            case "As I see it, yes":
+                resourceId = R.drawable.eight_ball_as_i_see_it_yes_192;
+                break;
+            case "Most likely":
+                resourceId = R.drawable.eight_ball_most_likely_192;
+                break;
+            case "Outlook good":
+                resourceId = R.drawable.eight_ball_outlook_good_192;
+                break;
+            case "Yes":
+                resourceId = R.drawable.eight_ball_yes_192;
+                break;
+            case "Signs point to yes":
+                resourceId = R.drawable.eight_ball_signs_point_to_yes_192;
+                break;
+            case "Reply hazy try again":
+                resourceId = R.drawable.eight_ball_reply_hazy_try_again_192;
+                break;
+            case "Ask again later":
+                resourceId = R.drawable.eight_ball_ask_again_later_192;
+                break;
+            case "Cannot predict now":
+                resourceId = R.drawable.eight_ball_cannot_predict_now_192;
+                break;
+            case "Concentrate and ask again":
+                resourceId = R.drawable.eight_ball_concentrate_and_ask_again_192;
+                break;
+            case "Don't count on it":
+                resourceId = R.drawable.eight_ball_dont_count_on_it_192;
+                break;
+            case "My reply is no":
+                resourceId = R.drawable.eight_ball_my_reply_is_no_192;
+                break;
+            case "My sources say no":
+                resourceId = R.drawable.eight_ball_my_sources_says_no_192;
+                break;
+            case "Very doubtful":
+                resourceId = R.drawable.eight_ball_very_doubtful_192;
+                break;
+            default:
+                resourceId = R.drawable.eight_ball_ask_again_later_192;
+                break;
+        }
+    }
+
     private void registerAnimationListener() {
         mShake.setAnimationListener(new Animation.AnimationListener() {
+
             @Override
             public void onAnimationStart(Animation animation) {
 
@@ -103,7 +177,8 @@ public class MainActivity extends AppCompatActivity implements ShakeDetector.OnS
             @Override
             public void onAnimationStart(Animation animation) {
                 Log.d("MainActivity", "Animation börjar");
-                mMagicBall.setImageResource(R.mipmap.magic_ball);
+                mMagicBall.setImageResource(R.drawable.eight_ball_192);
+                decideWhichId();
                 mIsShakeOk = false;
                 test = 0;
             }
@@ -125,7 +200,7 @@ public class MainActivity extends AppCompatActivity implements ShakeDetector.OnS
                 Log.d("MainActivity", "duration: " + animation.getDuration());
                 animation.setDuration(animation.getDuration() + 100);
                 if (mAnimationCount == 1) {
-                    mMagicBall.setImageResource(R.drawable.ball);
+                    mMagicBall.setImageResource(resourceId);
                 }
                 mAnimationCount++;
             }
@@ -143,8 +218,20 @@ public class MainActivity extends AppCompatActivity implements ShakeDetector.OnS
 
         int id = item.getItemId();
 
-        if (id == R.id.action_settings) {
-            return true;
+        switch (id) {
+            case R.id.action_generate:
+                whatToGenerate = GENERATE;
+                break;
+            case R.id.action_generate_positive:
+                whatToGenerate = GENERATE_POS;
+                break;
+            case R.id.action_generate_negative:
+                whatToGenerate = GENERATE_NEG;
+                break;
+            case R.id.action_generate_neutral:
+                whatToGenerate = GENERATE_NEU;
+                break;
+
         }
 
         return super.onOptionsItemSelected(item);
@@ -165,21 +252,35 @@ public class MainActivity extends AppCompatActivity implements ShakeDetector.OnS
     @Override
     public void onShake(int count) {
         if (mIsShakeOk) {
-            new MagicTask().execute();
+            hasShaked = true;
+            new MagicTask().execute(whatToGenerate);
         }
     }
 
-    private class MagicTask extends AsyncTask<Void, Void, String> {
+    private class MagicTask extends AsyncTask<String, Void, String> {
 
         @Override
-        protected void onPreExecute() {
-            mMagicBall.setImageResource(R.mipmap.magic_ball);
-            mMagicBall.startAnimation(mShake);
-        }
-
-        @Override
-        protected String doInBackground(Void... params) {
-            String result = HttpManager.getData("https://magic-8-ball-api.herokuapp.com/generate");
+        protected String doInBackground(String... params) {
+            String choice = params[0];
+            String request;
+            switch (choice) {
+                case GENERATE:
+                    request = "https://magic-8-ball-api.herokuapp.com/generate";
+                    break;
+                case GENERATE_POS:
+                    request = "https://magic-8-ball-api.herokuapp.com/generate/positive";
+                    break;
+                case GENERATE_NEG:
+                    request = "https://magic-8-ball-api.herokuapp.com/generate/negative";
+                    break;
+                case GENERATE_NEU:
+                    request = "https://magic-8-ball-api.herokuapp.com/generate/neutral";
+                    break;
+                default:
+                    request = "https://magic-8-ball-api.herokuapp.com/generate";
+                    break;
+            }
+            String result = HttpManager.getData(request);
             try {
                 JSONObject jsonObject = new JSONObject(result);
                 String answer = jsonObject.getString("answer");
@@ -188,6 +289,12 @@ public class MainActivity extends AppCompatActivity implements ShakeDetector.OnS
                 e.printStackTrace();
                 return null;
             }
+        }
+
+        @Override
+        protected void onPreExecute() {
+            mMagicBall.setImageResource(R.drawable.eight_ball_192);
+            mMagicBall.startAnimation(mShake);
         }
 
         @Override

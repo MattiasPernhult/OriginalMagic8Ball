@@ -3,4 +3,8 @@
 
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
+    <string name="action_gen_pos">Force positive</string>
+    <string name="action_gen_neg">Force negative</string>
+    <string name="action_gen_neu">Force neutral</string>
+    <string name="action_gen">No force</string>
 </resources>

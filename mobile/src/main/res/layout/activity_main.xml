@@ -1,4 +1,4 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -10,9 +10,9 @@
 
     <ImageView
         android:id="@+id/magic_ball"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:src="@mipmap/magic_ball"
-        android:elevation="100dp"/>
+        android:layout_width="150dip"
+        android:layout_height="150dip"
+        android:layout_gravity="center"
+        android:src="@drawable/eight_ball_192" />
 
-</LinearLayout>
+</FrameLayout>
