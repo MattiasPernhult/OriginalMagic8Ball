@@ -1,16 +1,11 @@
 package mattiaspernhult.com.originalmagic8ball;
 
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Matrix;
-import android.graphics.Path;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -38,7 +33,6 @@ public class MainActivity extends AppCompatActivity implements ShakeDetector.OnS
     private Sensor mAccelerometer;
     private ShakeDetector mShakeDetector;
 
-    private int test;
     private int resourceId;
 
     private String whatToGenerate;
@@ -62,8 +56,18 @@ public class MainActivity extends AppCompatActivity implements ShakeDetector.OnS
         hasShaked = false;
         whatToGenerate = GENERATE;
 
+        setClickListener();
+
         mAnimationCount = 0;
 
+        mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        mShakeDetector = new ShakeDetector();
+        mShakeDetector.setOnShakeListener(this);
+
+    }
+
+    private void setClickListener() {
         mMagicBall.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -76,12 +80,6 @@ public class MainActivity extends AppCompatActivity implements ShakeDetector.OnS
 
             }
         });
-
-        mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-        mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-        mShakeDetector = new ShakeDetector();
-        mShakeDetector.setOnShakeListener(this);
-
     }
 
     private void initializeRotationAnimation() {
@@ -164,7 +162,7 @@ public class MainActivity extends AppCompatActivity implements ShakeDetector.OnS
 
             @Override
             public void onAnimationEnd(Animation animation) {
-                Toast.makeText(MainActivity.this, "Your answer is ready press, press the magic ball", Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, "Your answer is ready, press the magic ball", Toast.LENGTH_SHORT).show();
             }
 
             @Override
@@ -176,28 +174,20 @@ public class MainActivity extends AppCompatActivity implements ShakeDetector.OnS
         mRotate.setAnimationListener(new Animation.AnimationListener() {
             @Override
             public void onAnimationStart(Animation animation) {
-                Log.d("MainActivity", "Animation börjar");
                 mMagicBall.setImageResource(R.drawable.eight_ball_192);
                 decideWhichId();
                 mIsShakeOk = false;
-                test = 0;
             }
 
             @Override
             public void onAnimationEnd(Animation animation) {
-                Log.d("MainActivity", "Animation slutade");
                 mAnimationCount = 0;
                 animation.setDuration(500);
                 mIsShakeOk = true;
-                Log.d("MainActivity", "Totala tiden: " + test);
-                Toast.makeText(MainActivity.this, mAnswer, Toast.LENGTH_LONG).show();
             }
 
             @Override
             public void onAnimationRepeat(Animation animation) {
-                test += animation.getDuration();
-                Log.d("MainActivity", "Animation repeteras " + mAnimationCount);
-                Log.d("MainActivity", "duration: " + animation.getDuration());
                 animation.setDuration(animation.getDuration() + 100);
                 if (mAnimationCount == 1) {
                     mMagicBall.setImageResource(resourceId);
@@ -260,6 +250,12 @@ public class MainActivity extends AppCompatActivity implements ShakeDetector.OnS
     private class MagicTask extends AsyncTask<String, Void, String> {
 
         @Override
+        protected void onPreExecute() {
+            mMagicBall.setImageResource(R.drawable.eight_ball_192);
+            mMagicBall.startAnimation(mShake);
+        }
+
+        @Override
         protected String doInBackground(String... params) {
             String choice = params[0];
             String request;
@@ -289,12 +285,6 @@ public class MainActivity extends AppCompatActivity implements ShakeDetector.OnS
                 e.printStackTrace();
                 return null;
             }
-        }
-
-        @Override
-        protected void onPreExecute() {
-            mMagicBall.setImageResource(R.drawable.eight_ball_192);
-            mMagicBall.startAnimation(mShake);
         }
 
         @Override
